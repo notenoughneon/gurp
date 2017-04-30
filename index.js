@@ -43,27 +43,39 @@ function gurpcode(msg) {
     return preamble + text + terminator
 }
 
-function isToday(date) {
-    const today = new Date()
-    return date.getDate() === today.getDate()
-        && date.getMonth() === today.getMonth()
-        && date.getFullYear() === today.getFullYear()
-}
+var pals = {}
 
-var lastSeen = {}
+socket.on('users', users => users.forEach(user =>
+    pals[user.nick] = {online: true, lastSeen: null}
+))
 
 socket.on('join', user => {
-    // don't greet unless first time seeing user today
-    if (!lastSeen[user.nick] || !isToday(lastSeen[user.nick]) ) {
+    var pal = pals[user.nick]
+    var now = new Date()
+    if (pal === undefined) {
+        say(gurpcode('hello ' + user.nick))
+        say(gurpcode('pleased to meet you'))
+    }
+    // don't greet unless last seen > 8 hrs
+    else if (!pal.online && now - pal.lastSeen > 1000 * 60 * 60 * 8) {
         say(gurpcode('hello ' + user.nick))
     }
-    lastSeen[user.nick] = new Date()
+    pals[user.nick] = {online: true, lastSeen: null}
+})
+
+socket.on('part', user => {
+    pals[user.nick] = {online: false, lastSeen: new Date()}
 })
 
 socket.on('message', msg => {
     if (msg.message.startsWith('!lastseen')) {
-        Object.keys(lastSeen).forEach(nick => {
-            say(gurpcode(nick + ':' + moment(lastSeen[nick]).fromNow()))
+        Object.keys(pals).forEach(nick => {
+            var pal = pals[nick]
+            say(gurpcode(
+                nick
+                + ':'
+                + (pal.online ? 'online' : moment(pal.lastSeen).fromNow())
+            ))
         })
     }
 
