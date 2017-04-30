@@ -36,7 +36,7 @@ function gurpcode(msg) {
         h = h * 31 + text.charCodeAt(i)
         h = h % 10000
     }
-    const at = (h, i) => Number.parseInt(h / (10 ** i) % 10)
+    const at = (h, i) => Number.parseInt(h / (Math.pow(10, i)) % 10)
     var preamble = `GURP ${at(h, 0)}-${at(h, 1)} GURP ${at(h, 2)}-${at(h, 3)} PIPI: `
     var terminator = text.length % 2 === 1 ? 'UNF' : ''
     text = text.replace(/(..)/g, (_, p1) => p1 + ' ')
