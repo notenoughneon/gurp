@@ -29,8 +29,18 @@ function say(msg) {
     }
 }
 
-function gurpify(msg) {
-    return msg.toUpperCase().replace(/\s/g, '').replace(/(\w\w)/g, (_, p1) => p1 + ' ')
+function gurpcode(msg) {
+    var text = msg.toUpperCase().replace(/\s/g, '')
+    var h = 0
+    for (var i = 0; i < text.length; i++) {
+        h = h * 31 + text.charCodeAt(i)
+        h = h % 10000
+    }
+    const at = (h, i) => Number.parseInt(h / (10 ** i) % 10)
+    var preamble = `GURP ${at(h, 0)}-${at(h, 1)} GURP ${at(h, 2)}-${at(h, 3)} PIPI: `
+    var terminator = text.length % 2 === 1 ? 'UNF' : ''
+    text = text.replace(/(..)/g, (_, p1) => p1 + ' ')
+    return preamble + text + terminator
 }
 
 function isToday(date) {
@@ -45,7 +55,7 @@ var lastSeen = {}
 socket.on('join', user => {
     // don't greet unless first time seeing user today
     if (!lastSeen[user.nick] || !isToday(lastSeen[user.nick]) ) {
-        say(gurpify('hello ' + user.nick))
+        say(gurpcode('hello ' + user.nick))
     }
     lastSeen[user.nick] = new Date()
 })
@@ -53,11 +63,11 @@ socket.on('join', user => {
 socket.on('message', msg => {
     if (msg.message.startsWith('!lastseen')) {
         Object.keys(lastSeen).forEach(nick => {
-            say(gurpify(nick + ':' + moment(lastSeen[nick]).fromNow()))
+            say(gurpcode(nick + ':' + moment(lastSeen[nick]).fromNow()))
         })
     }
 
-    else if (msg.message.toLowerCase().includes('gurp')) {
-        say(gurpify('my name is gurp'))
+    else if (msg.nick !== 'GURP' && msg.message.toLowerCase().includes('gurp')) {
+        say(gurpcode('i am gurp'))
     }
 })
