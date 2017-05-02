@@ -59,12 +59,9 @@ socket.on('users', users => users.forEach(user =>
 socket.on('join', user => {
     var pal = pals[user.nick]
     var now = new Date()
-    if (pal === undefined) {
-        say(gurpcode('hello ' + user.nick))
-        say(gurpcode('pleased to meet you'))
-    }
     // don't greet unless last seen > 8 hrs
-    else if (!pal.online && now - pal.lastSeen > 1000 * 60 * 60 * 8) {
+    if (pal === undefined ||
+        !pal.online && now - pal.lastSeen > 1000 * 60 * 60 * 8) {
         say(gurpcode('hello ' + user.nick))
     }
     pals[user.nick] = {online: true, lastSeen: null}
