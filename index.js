@@ -29,6 +29,13 @@ function say(msg) {
     }
 }
 
+function chunksert(a, n, x) {
+    return a.reduce((acc, elt, i) =>
+        i > 0 && i % n == 0 ? acc.concat([x]).concat([elt]) : acc.concat([elt]),
+        []
+    )
+}
+
 function gurpcode(msg) {
     var text = msg.toUpperCase().replace(/\s/g, '')
     var h = 0
@@ -38,9 +45,9 @@ function gurpcode(msg) {
     }
     const at = (h, i) => Number.parseInt(h / (Math.pow(10, i)) % 10)
     var preamble = `GURP ${at(h, 0)}-${at(h, 1)} GURP ${at(h, 2)}-${at(h, 3)} PIPI: `
-    var terminator = text.length % 2 === 1 ? 'UNF' : ''
-    text = text.replace(/(..)/g, (_, p1) => p1 + ' ')
-    return preamble + text + terminator
+    var glyphs = Array.from(text)
+    var terminator = glyphs.length % 2 === 1 ? 'UNF' : ''
+    return preamble + chunksert(glyphs, 2, ' ').join('') + terminator
 }
 
 var pals = {}
