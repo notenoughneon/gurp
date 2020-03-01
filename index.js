@@ -57,6 +57,18 @@ socket.on('users', users => users.forEach(user =>
     pals[user.nick] = {online: true, lastSeen: null}
 ))
 
+function getNotifys(name) {
+    let memos = palNotifys.get(name.toLowerCase())
+    if (memos !== undefined) {
+        say(gurpcode('user ' + name + ' you have ' + memos.length + ' messages'))
+        memos.forEach(m => {
+            say(gurpcode(m))
+        });
+
+        palNotifys.delete(name.toLowerCase())
+    }
+}
+
 socket.on('join', user => {
     var pal = pals[user.nick]
     var now = new Date()
@@ -65,17 +77,7 @@ socket.on('join', user => {
         !pal.online && now - pal.lastSeen > 1000 * 60 * 60 * 8) {
         say(gurpcode('hello ' + user.nick))
     }
-
-    let memos = palNotifys.get(user.nick)
-    if (memos !== undefined) {
-        say(gurpcode('user ' + user.nick + ' you have ' + memos.length + ' messages'))
-        memos.forEach(m => {
-            say(gurpcode(m))
-        });
-
-        palNotifys.delete(user.nick)
-    }
-
+    getNotifys(user.nick)
     pals[user.nick] = {online: true, lastSeen: null}
 })
 
@@ -100,10 +102,10 @@ socket.on('message', msg => {
         let match = notifyExp.exec(msg.message)
 
         if(match !== undefined) {
-            let ns = palNotifys.get(match[1])
+            let ns = palNotifys.get(match[1].toLowerCase())
             if(ns === undefined) {
                 ns = []
-                palNotifys.set(match[1], ns)
+                palNotifys.set(match[1].toLowerCase(), ns)
             }
             ns.push('message from ' + msg.nick + ':' + match[2])
             say(gurpcode("memo accepted great job"))
